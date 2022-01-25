@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Django Example</title>
+</head>
+<body>
+    <form action="" method="post">
+        {% csrf_token %}
+        <p>
+            <label for="email">Email: </label>
+            <input type="text" id="email" name="email"/>
+        </p>
+        <p>
+            <label for="message">Message: </label>
+            <input type="text" id="message" name="message"/>
+        </p>
+        <p>
+            <label for="time">Date: </label>
+            <input type="datetime-local" id="time" name="time"/>
+        </p>
+        <input type="submit" value="Submit"/>
+
+    </form>
+
+</body>
+</html>

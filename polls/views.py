@@ -1,11 +1,13 @@
+import requests
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from polls.tasks import celery_send_mail
 from .forms import Reminder
 from django.views import generic
-from .forms import CommentForm
+from .forms import CommentForm, RegisterForm
 from .models import Comment, Post
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404, render
@@ -34,7 +36,7 @@ def reminder(request):
 class PostList(generic.ListView):
     model = Post
     paginate_by = 10
-    template_name = 'bloging/listing.html'
+    template_name = 'bloging/list_of_page.html'
 
     def get_queryset(self):
         return Post.objects.all().filter(posted=True)
@@ -61,7 +63,7 @@ def post_det(request, pk):
         form = CommentForm(initial=initial)
 
     context = {'form': form, 'post': post, 'page_obj': page_obj}
-    return render(request, 'bloging/detailing.html')
+    return render(request, 'bloging/detail_about_content.html')
 
 
 def user_detail(request, pk):
@@ -76,3 +78,45 @@ def user_detail(request, pk):
         'obj': user,
     }
     return render(request, 'bloging/user.html')
+
+
+
+class RegisterFormView(generic.FormView):
+    template_name = 'bloging/register.html'
+    form_class = RegisterForm
+    success_url = reverse_lazy('index')
+
+    def form_valid(self, form):
+        form.save()
+
+        user_name = self.request.POST["username"]
+        password = self.request.POST["password"]
+
+        user = authenticate(username=user_name, password=password)
+        login(self.request, user)
+        return super(RegisterForm, self).form_valid(form)
+
+
+class UserEdit(LoginRequiredMixin, generic.UpdateView):
+    model = User
+    fields = ['username', 'first_name', 'second_name', 'email']
+    template_name = 'bloging/update.html'
+    success_url = reverse_lazy('index')
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+        return user
+
+
+class HomePage(generic.TemplateView):
+    template_name = 'index.html'
+
+
+class PostCreate(LoginRequiredMixin, generic.CreateView):
+    model = Post
+    paginate_by = 10
+    template_name = 'bloging/detail_about_content.html'
+
+    def get_queryset(self):
+        return Post.objects.all().filter(posted=True)
+
